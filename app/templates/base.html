@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }} - Moglidetect</title>
+        {% else %}
+        <title>Welcome to Moglidetect!</title>
+        {% endif %}
+    </head>
+    <body>
+        <div>Moglidetect: <a href="/index">Home</a></div>
+        <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>
