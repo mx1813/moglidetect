@@ -48,7 +48,7 @@
 				<div class="container-fluid py-5 text-center">
 					<h1 class="display-5 fw-bold">MogliDetect</h1>
                     <p>Dies ist ein wunderschöner Platzhaltertext</p>
-					<form action="" method="post" novalidate>
+					<form action="" method="post" id="input-form" novalidate>
                         {{ form.hidden_tag() }}
                         <div class="form-group row mb-3 align-items-center justify-content-center">
                             <div class="col-sm-2 col-form-label">
@@ -65,13 +65,13 @@
                             <span style="color: red;">[{{ error }}]</span>
                             {% endfor %}
                         </div>
-                        <p>{{ form.submit(class_='btn btn-lg btn-success') }}</p>
+                        <p>{{ form.submit(class_='btn btn-lg btn-success', id='submit') }}</p>
                     </form>
 				</div>
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                <div class="progress mb-2">
+                    <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Certainty: {{certainty}} </div>
                 </div>
-                <h3 class="display-7 fw-bold text-center">Human</h3>
+                <h3 class="display-6 fw-bold text-center">{{ result }}</h3>
 			</div>
 			        	        
 			<footer class="footer">
@@ -81,5 +81,6 @@
 			</footer>
 			    
 		</div>
+        
 	</body>
 </html>
