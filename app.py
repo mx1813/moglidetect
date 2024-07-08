@@ -30,7 +30,7 @@ def index():
                 jsonString = comprendetect.EnsembledZippy().run_on_text_chunked(input)
                 jsonObject = json.loads(jsonString)
                 certValue = round(jsonObject["certainty"], 4)
-                certainty = certValue * 100
+                certainty = round(certValue * 100, 2)
                 result = jsonObject["label"]
             else:
                 result = 'not yet implemented'
