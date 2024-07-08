@@ -12,7 +12,7 @@ from importlib.resources import files
 
 __version__ = "0.0.1"
 
-Score : TypeAlias = tuple[str, float]
+Score : TypeAlias = tuple[str, float, float]
 
 def clean_text(s : str) -> str:
     '''
@@ -84,10 +84,12 @@ class BrotliLlmDetector(AIDetector):
         print('Brotli: ' + str((self.prelude_ratio, sample_score)))
         delta = self.prelude_ratio - sample_score
         determination = 'AI'
+        certainty = abs(delta * 100)
+        certPercent = certainty / self.prelude_ratio
         if delta < 0:
             determination = 'Human'
-        print('BrotLil determination: ' + str((determination, abs(delta * 100))))
-        return (determination, abs(delta * 100))
+        print('BrotLil determination: ' + str((determination, certainty, certPercent)))
+        return (determination, certainty, certPercent)
     
 class ZlibLlmDetector(AIDetector):
     '''Class providing functionality to attempt to detect LLM/generative AI generated text using the zlib compression algorithm'''
@@ -131,10 +133,12 @@ class ZlibLlmDetector(AIDetector):
         print('ZLIB: ' + str((self.prelude_ratio, sample_score)))
         delta = self.prelude_ratio - sample_score
         determination = 'AI'
+        certainty = abs(delta * 100)
+        certPercent = certainty / self.prelude_ratio
         if delta < 0:
             determination = 'Human'
-        print('ZLIB determination: ' + str((determination, abs(delta * 100))))
-        return (determination, abs(delta * 100))
+        print('ZLIB determination: ' + str((determination, certainty, certPercent)))
+        return (determination, certainty, certPercent)
     
 class LzmaLlmDetector(AIDetector):
     '''Class providing functionality to attempt to detect LLM/generative AI generated text using the LZMA compression algorithm'''
@@ -179,10 +183,12 @@ class LzmaLlmDetector(AIDetector):
         print('LZMA: ' + str((self.prelude_ratio, sample_score)))
         delta = self.prelude_ratio - self._compress(self.prelude_str + sample)
         determination = 'AI'
+        certainty = abs(delta * 100)
+        certPercent = certainty / self.prelude_ratio
         if delta < 0:
             determination = 'Human'
-        print('LZMA determination: ' + str((determination, abs(delta * 100))))
-        return (determination, abs(delta * 100))
+        print('LZMA determination: ' + str((determination, abs(delta * 100), certPercent)))
+        return (determination, certainty, certPercent)
         
 class EnsembledZippy:
     '''
@@ -197,11 +203,12 @@ class EnsembledZippy:
         
     def _combine_scores(self, scores : list[Score]) -> Score:
         ssum : float = 0.0
+        print(scores)
         for i, s in enumerate(scores):
             if s[0] == 'AI':
-                ssum -= s[1] * self.WEIGHTS[i]
+                ssum -= s[2] * self.WEIGHTS[i]
             else:
-                ssum += s[1] * self.WEIGHTS[i]
+                ssum += s[2] * self.WEIGHTS[i]
         sa : float = ssum
         if sa < 0:
             certainty = abs(sa)
@@ -222,6 +229,8 @@ class EnsembledZippy:
     def _score_chunk(self, c : str, prelude_file : Optional[str] = None, prelude_ratio : Optional[float] = None) -> Score:
         scores = []
         for c in self.component_classifiers:
+            print("here in score_chunk of ensembled zippy")
+            print(c.score_text(c))
             scores.append(c.score_text(c))
         return self._combine_scores(scores)
 
@@ -325,16 +334,19 @@ class Zippy:
             for c in chunks:
                 scores.append(self._score_chunk(c, prelude_file=prelude_file, prelude_ratio=prelude_ratio))
         ssum : float = 0.0
+        sper : float = 0.0
         for i, s in enumerate(scores):
             if s[0] == 'AI':
                 ssum -= s[1] * (len(chunks[i]) / len(contents))
+                sper -= s[2] * (len(chunks[i]) / len(contents))
             else:
                 ssum += s[1] * (len(chunks[i]) / len(contents))
+                sper -= s[2] * (len(chunks[i]) / len(contents))
         sa : float = ssum
         if sa < 0:
-            return ('AI', abs(sa))
+            return ('AI', abs(sa), abs(sper))
         else:
-            return ('Human', abs(sa))
+            return ('Human', abs(sa), abs(sper))
 
 
 def main():

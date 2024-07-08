@@ -29,7 +29,8 @@ def index():
                 print('Detection with Compression Method')
                 jsonString = comprendetect.EnsembledZippy().run_on_text_chunked(input)
                 jsonObject = json.loads(jsonString)
-                certainty = str(round(jsonObject["certainty"], 4))
+                certValue = round(jsonObject["certainty"], 4)
+                certainty = certValue * 100
                 result = jsonObject["label"]
             else:
                 result = 'not yet implemented'
