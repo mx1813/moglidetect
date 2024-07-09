@@ -32,7 +32,7 @@ def clean_text(s : str) -> str:
 
 # The prelude file is a text file containing only AI-generated text, it is used to 'seed' the LZMA dictionary
 PRELUDE_FILE : str = 'ai-generated.txt'
-PRELUDE_STR = clean_text(files('comprendetect').joinpath(PRELUDE_FILE).read_text())
+PRELUDE_STR = clean_text(files('comprendetect').joinpath(PRELUDE_FILE).read_text(encoding="utf-8"))
 #print(PRELUDE_STR)
 
 class CompressionEngine(Enum):
@@ -264,7 +264,7 @@ class Zippy:
         self.PRESET = preset
         if prelude_file == PRELUDE_FILE:
             self.PRELUDE_FILE = str(files('comprendetect').joinpath(PRELUDE_FILE))
-            self.PRELUDE_STR = clean_text(files('comprendetect').joinpath(PRELUDE_FILE).read_text())
+            self.PRELUDE_STR = clean_text(files('comprendetect').joinpath(PRELUDE_FILE).read_text(encoding="utf-8"))
         else:
             self.PRELUDE_FILE = prelude_file
             with open(self.PRELUDE_FILE, encoding='utf-8') as fp:
