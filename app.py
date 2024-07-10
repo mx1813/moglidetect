@@ -62,8 +62,6 @@ def index():
     if request.method == "POST" and form.validate_on_submit():
         detectMethod = form.detectmethod.data
         input = form.inputText.data
-        certainty = 0
-        result = 'Loading'
         print(detectMethod)
         if detectMethod == '1':
             print('Detection with Compression Method')
@@ -72,7 +70,7 @@ def index():
             print('Started executor')
         else:
             result = 'not yet implemented'
-        return render_template('index.html', form=form, result=result, certainty=certainty)
+        return render_template('index.html', form=form)
     return render_template('index.html', form=form)
 
 # @app.route('/update-status/<int:state>', methods=['PUT'])
