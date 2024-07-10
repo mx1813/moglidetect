@@ -203,19 +203,20 @@ class EnsembledZippy:
         
     def _combine_scores(self, scores : list[Score]) -> Score:
         ssum : float = 0.0
+        sper : float = 0.0
         print(scores)
         for i, s in enumerate(scores):
             if s[0] == 'AI':
-                ssum -= s[2] * self.WEIGHTS[i]
+                ssum -= s[1] * self.WEIGHTS[i]
+                sper -= s[2] * self.WEIGHTS[i]
             else:
-                ssum += s[2] * self.WEIGHTS[i]
+                ssum += s[1] * self.WEIGHTS[i]
+                sper -= s[2] * self.WEIGHTS[i]
         sa : float = ssum
         if sa < 0:
-            certainty = abs(sa)
-            return f'{{"label": "KI", "certainty": {certainty}}}'
+            return f'{{"label": "KI", "certainty": {abs(sa)}, "certPercent":{abs(sper)}}}'
         else:
-            certainty = abs(sa)
-            return f'{{"label": "Mensch", "certainty": {certainty}}}'
+            return f'{{"label": "Mensch", "certainty": {abs(sa)}, "certPercent":{abs(sper)}}}'
 
     def run_on_file(self, filename : str) -> Optional[Score]:
         '''Given a filename (and an optional number of decimal places to round to) returns the score for the contents of that file'''

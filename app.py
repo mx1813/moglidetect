@@ -17,7 +17,6 @@ executor = Executor(app)
 
 def compressionDetection(inputText):
     print("start compression detection")
-    print(inputText)
     jsonString = comprendetect.EnsembledZippy().run_on_text_chunked(inputText)
     jsonObject = json.loads(jsonString)
     certValue = round(jsonObject["certainty"], 4)
@@ -70,7 +69,7 @@ def index():
             print('Started executor')
         else:
             result = 'not yet implemented'
-        return render_template('index.html', form=form)
+        return render_template('index.html', form=form, method=detectMethod)
     return render_template('index.html', form=form)
 
 # @app.route('/update-status/<int:state>', methods=['PUT'])

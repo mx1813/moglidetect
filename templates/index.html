@@ -20,6 +20,9 @@
 		#loading-spinner{
 			visibility: collapse;
 		}
+		#result-info{
+			visibility: hidden;
+		}
     </style>
 	<body>
 		    
@@ -81,6 +84,12 @@
                 <div class="progress mb-2">
                     <div class="progress-bar active" id="certainty-bar" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>    
+				<div class="card text-center" id="result-info">
+					<div class="card-body" id="result-info-body">
+						<!--Hier kommt eine Erklärung für das Ergebnis hin. Evtl mit Daten-->
+						Der Text ist schön.
+					</div>
+				</div>
 			</div>
 			        	        
 			<footer class="footer text-center mt-4">
@@ -117,6 +126,14 @@
 				document.getElementById("result-label").innerHTML = res.result;
 				$("#certainty-bar").css("width", cert + "%")
 				$("#certainty-bar").html(cert + "%")
+				if(res.result == "Mensch"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + cert + "%</b> von einem Mensch geschrieben. Die Bewertung erfolgte mit der Methode {{method}}. Für mehr Informationen und detaillierte Werte überprüfen Sie bitte die logs.")
+				}else{
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + cert + "%</b> von einer KI generiert. Die Bewertung erfolgte mit der Methode {{method}}. Für mehr Informationen und detaillierte Werte überprüfen Sie bitte die logs.")
+				}
+				
 				document.getElementById("submit").disabled = false;
 				clearTimeout(timeout);
 				return false;
@@ -126,10 +143,7 @@
 				let submitButton = document.getElementById("submit")
 				submitButton.disabled = true;
 				console.log(submitButton.disabled)
-			}else {
-				console.log('what da heeel')
 			}
-			
 			timeout = setTimeout(getStatus, 3000);
 			}
 
