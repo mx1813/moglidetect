@@ -17,6 +17,9 @@
         textarea{
             resize:none;
         }
+		#loading-spinner{
+			display: none !important;
+		}
     </style>
 	<body>
 		    
@@ -69,15 +72,16 @@
                         <p>{{ form.submit(class_='btn btn-lg btn-success', id='submit') }}</p>
                     </form>
 				</div>
-				<h3 class="display-6 fw-bold text-center" id="result-label">{{ result }}</h3>
+				<div class="d-flex justify-content-center" id="loading-spinner">
+					<div class="spinner-border" role="status">
+					  <span class="visually-hidden">Loading...</span>
+					</div>
+				  </div>
+				<h3 class="display-6 fw-bold text-center" id="result-label"></h3>
                 <div class="progress mb-2">
                     <div class="progress-bar active" id="certainty-bar" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100">
 						<!--Certainty: {{certainty}} </div>-->
-						<script> $("#certainty-bar").css("width", "{{ certainty }}%")</script>
-						{{ certainty }}
-						{% if certainty != 0 %}
-						%
-						{% endif %}
+						moin
                 </div>    
 			</div>
 			        	        
@@ -88,6 +92,50 @@
 			</footer>
 			    
 		</div>
-        
+		<script>
+			var timeout;
+
+			async function getStatus() {
+
+			let get;
+			
+			try {
+				const res = await fetch("/get-result");
+				get = await res.json();
+			} catch (e) {
+				console.error("Error: ", e);
+			}
+			
+			//document.getElementById("innerStatus").innerHTML += " . ";
+			console.log(get)
+			console.log(get.status)
+			if (get.status == 'done'){
+				console.log('Compression is done')
+				console.log(get.result)
+				
+				let res = JSON.parse(get.result)
+				$('#loading-spinner').css("display", "none !important")
+				cert = res.certainty
+				console.log(cert)
+				document.getElementById("result-label").innerHTML = res.result;
+				$("#certainty-bar").css("width", cert + "%")
+				document.getElementById("submit").disabled = false;
+				clearTimeout(timeout);
+				return false;
+			}else if (get.status == 'RUNNING'){
+				console.log('The job is running in the background');
+				$('#loading-spinner').css("display", "inline-block")
+				let submitButton = document.getElementById("submit")
+				submitButton.disabled = true;
+				console.log(submitButton.disabled)
+			}else {
+				console.log('what da heeel')
+			}
+			
+			timeout = setTimeout(getStatus, 3000);
+			}
+
+			getStatus();
+		</script>
 	</body>
 </html>
