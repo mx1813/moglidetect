@@ -1,6 +1,6 @@
 import os
 import json
-import time
+from typing import TypeAlias
 import random
 from flask import Flask, render_template, request, jsonify, url_for
 from flask_wtf import FlaskForm
@@ -38,25 +38,47 @@ def llmDetection(inputText):
     responseJson = json.dumps(responseList)
     return responseJson
 
-@app.route('/start_task')
-def long_task(self):
-    """Background task that runs a long function with progress reports."""
-    verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking']
-    adjective = ['master', 'radiant', 'silent', 'harmonic', 'fast']
-    noun = ['solar array', 'particle reshaper', 'cosmic ray', 'orbiter', 'bit']
-    message = ''
-    total = random.randint(10, 50)
-    for i in range(total):
-        if not message or random.random() < 0.25:
-            message = '{0} {1} {2}...'.format(random.choice(verb),
-                                              random.choice(adjective),
-                                              random.choice(noun))
-        self.update_state(state='PROGRESS',
-                          meta={'current': i, 'total': total,
-                                'status': message})
-        time.sleep(1)
-    return {'current': 100, 'total': 100, 'status': 'Task completed!',
-            'result': 42}
+def ensembleDetection(inputText):
+    print('start ensemble detection')
+    scores = []
+    weightedVotes = []
+    ssum: float = 0.0
+    compressionResult = json.loads(comprendetect.EnsembledZippy().run_on_text_chunked(inputText))
+    print(compressionResult)
+    print(compressionResult["score"])
+    score = compressionResult["score"]
+    scores.append(score)
+    if compressionResult["label"] == 'KI':
+        weightedVotes.append(-1 * 0.7)
+        ssum -= score
+    else:
+        weightedVotes.append(0.7)
+        ssum += score
+
+    llmResult = llm_pipeline(inputText)
+    score = llmResult["score"]
+    scores.append(score)
+    if llmResult["label"] == 'Fake':
+        weightedVotes.append(-1*0.3)
+        ssum -= score 
+    else:
+        weightedVotes.append(0.3)
+        ssum += score
+    
+    print(scores)
+    print(ssum)
+    avg = sum(weightedVotes)/len(weightedVotes)
+    print(avg)
+    print(sum(scores))
+    certainty = abs(ssum)/sum(scores)
+    if abs(avg) != 0.5:
+        certainty = ssum
+    print(certainty)
+    if avg < 0:
+        responseList = {'label': 'KI', 'score':round(abs(certainty)*100, 2)}
+    else:
+        responseList = {'label': 'Mensch', 'score':round(abs(certainty)*100, 2)}
+    return json.dumps(responseList)
       
 class InputForm(FlaskForm):
     detectmethod = SelectField('Methode', choices=[('1', 'Kompression'), ('2', 'Fine-Tuned GBERT'), ('3', 'Ensemble')], validators=[DataRequired()])
@@ -81,15 +103,11 @@ def index():
             executor.submit_stored('detection', llmDetection, input)
             print('Started executor')
         else:
-            print('not yet implemented')
+            print('Start ensemble detection')
+            executor.submit_stored('detection', ensembleDetection, input)
+            print('Started executor')
         return render_template('index.html', form=form, method=detectMethod)
     return render_template('index.html', form=form)
-
-# @app.route('/update-status/<int:state>', methods=['PUT'])
-# def update_status(state: int):
-#     global status
-#     status += 30
-#     return '', 200
 
 @app.route('/get-result')
 def get_result():

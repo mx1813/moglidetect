@@ -18,7 +18,7 @@
             resize:none;
         }
 		#loading-spinner{
-			visibility: collapse;
+			visibility: hidden;
 		}
 		#result-info{
 			visibility: hidden;
@@ -82,10 +82,11 @@
                     </form>
 				</div>
 				<div class="d-flex justify-content-center" id="loading-spinner">
-					<div class="spinner-border" role="status">
+					<div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
 					  <span class="visually-hidden">Loading...</span>
 					</div>
 				</div>
+				<p class="display-9 text-center" id="loading-label"></p>
 				<h3 class="display-6 fw-bold text-center" id="result-label"></h3>
 				<h4 class="display-8 text-center" id="confidence-value"></h4>
 				<div class="row justify-content-center align-items-center mb-2" id="score-bar">
@@ -129,17 +130,22 @@
 			if (get.status == 'done'){
 				console.log('Compression is done')		
 				let res = JSON.parse(get.result)
-				$('#loading-spinner').css("visibility", "collapse")
+				$('#loading-spinner').css("visibility", "hidden")
+				$('#loading-label').css("visibility", "hidden")
 				console.log(res)
 				document.getElementById("result-label").innerHTML = res.label;
 				if(res.method==1){
 					console.log("Kompressionsverfahren")
 					$("#score-bar").css("visibility", "hidden")
 					showCompressionResults(res.label, res.score, res.certainty)
-				}else{
+				}else if(res.method ==2){
 					console.log("Fine-Tuned LLM");
 					$("#confidence-value").css("visibility", "hidden")
 					showResults(res.label, res.score, "Fine-tuned GBERT")
+				}else{
+					console.log("Ensemble");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Ensemble")
 				}	
 				document.getElementById("submit").disabled = false;
 				clearTimeout(timeout);
@@ -147,7 +153,7 @@
 			}else if (get.status == 'RUNNING'){
 				console.log('The job is running in the background');
 				$('#loading-spinner').css("visibility", "visible")
-				$('#result-label').html(get.message)
+				$('#loading-label').html(get.message)
 				let submitButton = document.getElementById("submit")
 				submitButton.disabled = true;
 				console.log(submitButton.disabled)
@@ -176,14 +182,14 @@
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score + "%")
 					$("#certainty-bar-ai").css("width", (100-score) + "%")
-					$("#certainty-bar-ai").html((100-score) + "%")
+					$("#certainty-bar-ai").html((100-score).toFixed(2) + "%")
 				}else{
 					$("#result-info").css("visibility", "visible")
 					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score + "%")
 					$("#certainty-bar-human").css("width", (100-score) + "%")
-					$("#certainty-bar-human").html((100-score) + "%")
+					$("#certainty-bar-human").html((100-score).toFixed(2) + "%")
 				}
 			}
 
