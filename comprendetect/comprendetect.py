@@ -214,9 +214,9 @@ class EnsembledZippy:
                 sper -= s[2] * self.WEIGHTS[i]
         sa : float = ssum
         if sa < 0:
-            return f'{{"label": "KI", "certainty": {abs(sa)}, "certPercent":{abs(sper)}}}'
+            return f'{{"label": "KI", "certainty": {abs(sa)}, "score":{abs(sper)}}}'
         else:
-            return f'{{"label": "Mensch", "certainty": {abs(sa)}, "certPercent":{abs(sper)}}}'
+            return f'{{"label": "Mensch", "certainty": {abs(sa)}, "score":{abs(sper)}}}'
 
     def run_on_file(self, filename : str) -> Optional[Score]:
         '''Given a filename (and an optional number of decimal places to round to) returns the score for the contents of that file'''

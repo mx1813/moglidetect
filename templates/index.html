@@ -23,6 +23,12 @@
 		#result-info{
 			visibility: hidden;
 		}
+		#score-bar{
+			visibility: hidden;
+		}
+		.progress{
+			padding:0 !important;
+		}
     </style>
 	<body>
 		    
@@ -79,15 +85,20 @@
 					<div class="spinner-border" role="status">
 					  <span class="visually-hidden">Loading...</span>
 					</div>
-				  </div>
+				</div>
 				<h3 class="display-6 fw-bold text-center" id="result-label"></h3>
-                <div class="progress mb-2">
-                    <div class="progress-bar active" id="certainty-bar" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>    
+				<h4 class="display-8 text-center" id="confidence-value"></h4>
+				<div class="row justify-content-center align-items-center mb-2" id="score-bar">
+					<div class="col-1 text-center">Mensch</div>
+					<div class="progress col-10 nopadding">
+						<div class="progress-bar active bg-success" id="certainty-bar-human" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						<div class="progress-bar active bg-danger" id="certainty-bar-ai" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>    
+					<div class="col-1 text-center">KI</div>
+				</div>
 				<div class="card text-center" id="result-info">
 					<div class="card-body" id="result-info-body">
 						<!--Hier kommt eine Erklärung für das Ergebnis hin. Evtl mit Daten-->
-						Der Text ist schön.
 					</div>
 				</div>
 			</div>
@@ -116,35 +127,64 @@
 			console.log(get)
 			console.log(get.status)
 			if (get.status == 'done'){
-				console.log('Compression is done')
-				console.log(get.result)
-				
+				console.log('Compression is done')		
 				let res = JSON.parse(get.result)
 				$('#loading-spinner').css("visibility", "collapse")
-				cert = res.certainty
-				console.log(cert)
-				document.getElementById("result-label").innerHTML = res.result;
-				$("#certainty-bar").css("width", cert + "%")
-				$("#certainty-bar").html(cert + "%")
-				if(res.result == "Mensch"){
-					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + cert + "%</b> von einem Mensch geschrieben. Die Bewertung erfolgte mit der Methode {{method}}. Für mehr Informationen und detaillierte Werte überprüfen Sie bitte die logs.")
+				console.log(res)
+				document.getElementById("result-label").innerHTML = res.label;
+				if(res.method==1){
+					console.log("Kompressionsverfahren")
+					$("#score-bar").css("visibility", "hidden")
+					showCompressionResults(res.label, res.score, res.certainty)
 				}else{
-					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + cert + "%</b> von einer KI generiert. Die Bewertung erfolgte mit der Methode {{method}}. Für mehr Informationen und detaillierte Werte überprüfen Sie bitte die logs.")
-				}
-				
+					console.log("Fine-Tuned LLM");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Fine-tuned GBERT")
+				}	
 				document.getElementById("submit").disabled = false;
 				clearTimeout(timeout);
 				return false;
 			}else if (get.status == 'RUNNING'){
 				console.log('The job is running in the background');
 				$('#loading-spinner').css("visibility", "visible")
+				$('#result-label').html(get.message)
 				let submitButton = document.getElementById("submit")
 				submitButton.disabled = true;
 				console.log(submitButton.disabled)
 			}
 			timeout = setTimeout(getStatus, 3000);
+			}
+
+			function showCompressionResults(label, score, certainty){
+				console.log('Inside show compressionresults')
+				$("#confidence-value").css("visibility", "visible")
+				$("#confidence-value").html("Konfidenzniveau: " + certainty)
+				if(label == "Mensch" || label == "Real"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + certainty + '</b> als <b>menschlich</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + score + '%</b> abgenommen. Dies deutet auf einen <b>menschlichen</b> Text hin. Je höher die Abweichung und das Konfidenzniveau, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
+				}else {
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + certainty + '</b> als <b>KI-generiert</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + score + '%</b> zugenommen. Dies deutet auf einen <b>KI-generierten</b> Text hin. Je höher die Abweichung, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
+				}
+			}
+
+			function showResults(label, score, model){
+				$("#score-bar").css("visibility", "visible")
+				if(label == "Mensch" || label == "Real"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#certainty-bar-human").css("width", score + "%")
+					$("#certainty-bar-human").html(score + "%")
+					$("#certainty-bar-ai").css("width", (100-score) + "%")
+					$("#certainty-bar-ai").html((100-score) + "%")
+				}else{
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#certainty-bar-ai").css("width", score + "%")
+					$("#certainty-bar-ai").html(score + "%")
+					$("#certainty-bar-human").css("width", (100-score) + "%")
+					$("#certainty-bar-human").html((100-score) + "%")
+				}
 			}
 
 			getStatus();
