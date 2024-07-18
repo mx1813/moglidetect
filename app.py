@@ -9,6 +9,7 @@ from wtforms import SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, InputRequired
 from comprendetect import comprendetect
 from llmdetection import llm_pipeline
+from zeroShotDetection import AIOrHumanScorer
 
 
 app = Flask(__name__)
@@ -32,11 +33,21 @@ def llmDetection(inputText):
     print('start llm pipeline')
     jsonRes = llm_pipeline(inputText)
     print(jsonRes)
-    scoreValue = round(jsonRes["score"], 4)
-    score = round(scoreValue * 100)
+    score = round(jsonRes["score"] * 100, 2)
     responseList = {'label':jsonRes["label"], 'score':score, 'method':2}
     responseJson = json.dumps(responseList)
     return responseJson
+
+def zeroShotDetection(inputText):
+    print('start zero shot detection')
+    detector = AIOrHumanScorer()
+    result, n_tokens = detector.score(inputText)
+    if result < 0.5:
+        responseList = {'label': 'Human', 'score': (1-result)*100, 'tokens': n_tokens, 'method':3}
+    else:
+        responseList = {'label': 'AI', 'score': result*100, 'tokens': n_tokens, 'method':3}
+    print(responseList)
+    return json.dumps(responseList)
 
 def ensembleDetection(inputText):
     print('start ensemble detection')
@@ -81,7 +92,7 @@ def ensembleDetection(inputText):
     return json.dumps(responseList)
       
 class InputForm(FlaskForm):
-    detectmethod = SelectField('Methode', choices=[('1', 'Kompression'), ('2', 'Fine-Tuned GBERT'), ('3', 'Ensemble')], validators=[DataRequired()])
+    detectmethod = SelectField('Methode', choices=[('1', 'Kompression'), ('2', 'Fine-Tuned GBERT'), ('3', 'Zero-shot Detection'), ('4', 'Ensemble')], validators=[DataRequired()])
     inputText = TextAreaField('EingabeText', validators=[InputRequired(message="Du musst einen Text eingeben!"), Length(min=1, max=2048)])
     submit = SubmitField('Check Text!')
 
@@ -101,6 +112,10 @@ def index():
         elif detectMethod == '2':
             print('Detection with fine-tuned LLM')
             executor.submit_stored('detection', llmDetection, input)
+            print('Started executor')
+        elif detectMethod == '3':
+            print('Zero-shot detection with google-bert/bert-base-german-cased')
+            executor.submit_stored('detection', zeroShotDetection, input)
             print('Started executor')
         else:
             print('Start ensemble detection')
