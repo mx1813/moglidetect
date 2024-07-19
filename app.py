@@ -42,10 +42,17 @@ def zeroShotDetection(inputText):
     print('start zero shot detection')
     detector = AIOrHumanScorer()
     result, n_tokens = detector.score(inputText)
-    if result < 0.5:
-        responseList = {'label': 'Human', 'score': (1-result)*100, 'tokens': n_tokens, 'method':3}
+    print(result)
+    if result < 0.4:
+        result += 0.12
+        if result >= 1:
+            result = 0.9
+        responseList = {'label': 'Mensch', 'score': int((1-result)*100), 'tokens': n_tokens, 'method':3}
     else:
-        responseList = {'label': 'AI', 'score': result*100, 'tokens': n_tokens, 'method':3}
+        result += 0.12
+        if result >= 1:
+            result = 0.9
+        responseList = {'label': 'KI', 'score': int(result*100), 'tokens': n_tokens, 'method':3}
     print(responseList)
     return json.dumps(responseList)
 

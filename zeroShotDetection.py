@@ -11,10 +11,10 @@ class AIOrHumanScorer():
     """
     Score text that may have been produced by a generative model.
     """
-
+    #alt model: "google-bert/bert-base-german-cased"
     def __init__(self, mask_filler="bert-base-german-cased"):
-        self.model = AutoModelForMaskedLM.from_pretrained("google-bert/bert-base-german-cased")
-        self.tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-german-cased")
+        self.model = AutoModelForMaskedLM.from_pretrained("dbmdz/bert-base-german-cased")
+        self.tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
         self.mask_fill = pipeline("fill-mask", model=mask_filler)
         self.labels = ["human", "auto"]
         nltk.download("punkt")
@@ -79,7 +79,7 @@ class AIOrHumanScorer():
         score = sum([1 for t, p in zip(true_tokens, pred_tokens) if t in p]) / len(true_tokens)
         return score, n_mask
 
-    def predict_seqs_dict(self, text, top_k=3, order='right-to-left'):
+    def predict_seqs_dict(self, text, top_k=5, order='right-to-left'):
         ids_main = self.tokenizer.encode(text,
                                 return_tensors="pt",
                                 add_special_tokens=False)
