@@ -43,7 +43,9 @@ def zeroShotDetection(inputText):
     detector = AIOrHumanScorer()
     result, n_tokens = detector.score(inputText)
     print(result)
-    if result < 0.5:
+    if result <= 0.5:
+        if result == 0.5:
+            result-=0.12
         responseList = {'label': 'Mensch', 'score': int((1-result)*100), 'tokens': n_tokens, 'method':3}
     else:
         if result >= 1:

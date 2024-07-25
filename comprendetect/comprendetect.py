@@ -204,16 +204,20 @@ class EnsembledZippy:
     def _combine_scores(self, scores : list[Score]) -> Score:
         ssum : float = 0.0
         sper : float = 0.0
+        maxSum : int = 0
         print(scores)
         for i, s in enumerate(scores):
             if s[0] == 'AI':
                 ssum -= s[1] * self.WEIGHTS[i]
                 sper -= s[2] * self.WEIGHTS[i]
+                maxSum -= 1
             else:
                 ssum += s[1] * self.WEIGHTS[i]
-                sper -= s[2] * self.WEIGHTS[i]
+                sper += s[2] * self.WEIGHTS[i]
+                maxSum += 1
         sa : float = ssum
-        if sa < 0:
+        print(sa)
+        if maxSum < 0:
             return f'{{"label": "KI", "certainty": {abs(sa)}, "score":{abs(sper)}}}'
         else:
             return f'{{"label": "Mensch", "certainty": {abs(sa)}, "score":{abs(sper)}}}'
