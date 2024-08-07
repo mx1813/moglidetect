@@ -64,23 +64,33 @@ def ensembleDetection(inputText):
     print(compressionResult["score"])
     score = compressionResult["score"]
     scores.append(score)
+    # compression detection
     if compressionResult["label"] == 'KI':
-        weightedVotes.append(-1 * 0.7)
+        weightedVotes.append(-1 * 0.3)
         ssum -= score
-    else:
-        weightedVotes.append(0.7)
-        ssum += score
-
-    llmResult = llm_pipeline(inputText)
-    score = llmResult["score"]
-    scores.append(score)
-    if llmResult["label"] == 'Fake':
-        weightedVotes.append(-1*0.3)
-        ssum -= score 
     else:
         weightedVotes.append(0.3)
         ssum += score
-    
+    llmResult = llm_pipeline(inputText)
+    score = llmResult["score"]
+    scores.append(score)
+    # fine tuned llm detection
+    if llmResult["label"] == 'AI':
+        weightedVotes.append(-1*0.6)
+        ssum -= score 
+    else:
+        weightedVotes.append(0.6)
+        ssum += score
+    zeroShotResult = zeroShotDetection(inputText)
+    score = zeroShotResult["score"]
+    scores.append(score)
+    # fine tuned llm detection
+    if zeroShotResult["label"] == 'KI':
+        weightedVotes.append(-1*0.1)
+        ssum -= score 
+    else:
+        weightedVotes.append(0.1)
+        ssum += score
     print(scores)
     print(ssum)
     avg = sum(weightedVotes)/len(weightedVotes)

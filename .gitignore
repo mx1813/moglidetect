@@ -5,3 +5,6 @@ app/__pycache__/
 __pycache__/
 
 comprendetect/__pycache__/
+
+fine-tuning/model/mogli_sec
+fine-tuning/model.zip
