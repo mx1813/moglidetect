@@ -202,8 +202,9 @@
 
 			function showResults(label, score, model){
 				$("#score-bar").css("visibility", "visible")
-				if(label == "Mensch" || label == "Real"){
+				if(label == "HUMAN" || label == "Real" || label == "Mensch"){
 					$("#result-info").css("visibility", "visible")
+					$("#result-label").html("Mensch")
 					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score.toFixed(2) + "%")
@@ -211,6 +212,7 @@
 					$("#certainty-bar-ai").html((100-score).toFixed(2) + "%")
 				}else{
 					$("#result-info").css("visibility", "visible")
+					$("#result-label").html("KI")
 					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score.toFixed(2) + "%")

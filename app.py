@@ -1,6 +1,7 @@
 import os
 import json
 from typing import TypeAlias
+import numpy as np
 import random
 from flask import Flask, render_template, request, jsonify, url_for
 from flask_wtf import FlaskForm
@@ -66,7 +67,7 @@ def ensembleDetection(inputText):
     scores.append(score)
     # compression detection
     if compressionResult["label"] == 'KI':
-        weightedVotes.append(-1 * 0.3)
+        weightedVotes.append(-1 *0.3)
         ssum -= score
     else:
         weightedVotes.append(0.3)
@@ -81,8 +82,9 @@ def ensembleDetection(inputText):
     else:
         weightedVotes.append(0.6)
         ssum += score
-    zeroShotResult = zeroShotDetection(inputText)
-    score = zeroShotResult["score"]
+    zeroShotResult = json.loads(zeroShotDetection(inputText))
+    print(zeroShotResult)
+    score = zeroShotResult["score"] / 100
     scores.append(score)
     # fine tuned llm detection
     if zeroShotResult["label"] == 'KI':
@@ -92,18 +94,18 @@ def ensembleDetection(inputText):
         weightedVotes.append(0.1)
         ssum += score
     print(scores)
+    print(weightedVotes)
     print(ssum)
     avg = sum(weightedVotes)/len(weightedVotes)
     print(avg)
-    print(sum(scores))
-    certainty = abs(ssum)/sum(scores)
-    if abs(avg) != 0.5:
-        certainty = ssum
+    # normalize ssum
+    certainty = (avg + np.max(scores)) / 2
     print(certainty)
     if avg < 0:
         responseList = {'label': 'KI', 'score':round(abs(certainty)*100, 2)}
     else:
         responseList = {'label': 'Mensch', 'score':round(abs(certainty)*100, 2)}
+    print(responseList)
     return json.dumps(responseList)
       
 class InputForm(FlaskForm):
