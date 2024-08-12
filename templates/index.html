@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+		    
+		<title>MogliDetect - DHBW Heidenheim</title>
+		    
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+			crossorigin="anonymous"
+		/>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}">
+	</head>
+    <style>
+        textarea{
+            resize:none;
+        }
+		#loading-spinner{
+			visibility: hidden;
+		}
+		#result-info{
+			visibility: hidden;
+		}
+		#score-bar{
+			visibility: hidden;
+		}
+		.progress{
+			padding:0 !important;
+		}
+    </style>
+	<body>
+		    
+		<div class="container">
+			        
+			<header class="header">
+				            
+				<nav
+					class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom"
+				>
+					<a
+						href="/"
+						class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none"
+					>
+						<span class="fs-4">MogliDetect</span>
+					</a>
+					<ul class="nav nav-pills">
+						<!--
+						<li class="nav-item">
+							<a href="/" class="nav-link active" aria-current="page">Home</a>
+						</li>
+						<li class="nav-item">
+							<a href="/signup" class="nav-link">Signup</a>
+						</li>
+						-->
+					</ul>
+					                        
+				</nav>
+				                     
+			</header>
+			<div class="p-5 mb-4 bg-light rounded-3">
+				<div class="container-fluid py-5 text-center">
+					<h1 class="display-5 fw-bold">MogliDetect</h1>
+                    <p>Dies ist ein wunderschöner Platzhaltertext</p>
+					<form action="" method="post" id="input-form" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="form-group row mb-3 align-items-center justify-content-center">
+                            <div class="col-sm-2 col-form-label">
+                                {{ form.detectmethod.label}}
+                            </div>
+                            <div class="col-sm-4">
+                                {{ form.detectmethod(class_="form-select") }}
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <!--{{ form.inputText.label}}-->
+                            {{ form.inputText(class_='form-control', rows=10, placeholder='Hier bitte den zu überprüfenden Text eingeben') }}
+                            {% for error in form.inputText.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                            {% endfor %}
+                        </div>
+                        <p>{{ form.submit(class_='btn btn-lg btn-success', id='submit') }}</p>
+                    </form>
+				</div>
+				<div class="d-flex justify-content-center" id="loading-spinner">
+					<div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+					  <span class="visually-hidden">Loading...</span>
+					</div>
+				</div>
+				<p class="display-9 text-center" id="loading-label"></p>
+				<h3 class="display-6 fw-bold text-center" id="result-label"></h3>
+				<h4 class="display-8 text-center" id="confidence-value"></h4>
+				<div class="row justify-content-center align-items-center mb-2" id="score-bar">
+					<div class="col-1 text-center">Mensch</div>
+					<div class="progress col-10 nopadding">
+						<div class="progress-bar active bg-success" id="certainty-bar-human" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						<div class="progress-bar active bg-danger" id="certainty-bar-ai" role="progressbar" style="width: 0%" aria-volumenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>    
+					<div class="col-1 text-center">KI</div>
+				</div>
+				<div class="card text-center" id="result-info">
+					<div class="card-body" id="result-info-body">
+						<!--Hier kommt eine Erklärung für das Ergebnis hin. Evtl mit Daten-->
+					</div>
+				</div>
+			</div>
+			        	        
+			<footer class="footer text-center mt-4">
+				            
+				<p>&copy; DHBW 2024</p>
+				        
+			</footer>
+			    
+		</div>
+		<script>
+			var timeout;
+
+			async function getStatus() {
+
+			let get;
+			
+			try {
+				const res = await fetch("/get-result");
+				get = await res.json();
+			} catch (e) {
+				console.error("Error: ", e);
+			}
+			
+			console.log(get)
+			console.log(get.status)
+			if (get.status == 'done'){
+				console.log('Compression is done')		
+				let res = JSON.parse(get.result)
+				$('#loading-spinner').css("visibility", "hidden")
+				$('#loading-label').css("visibility", "hidden")
+				console.log(res)
+				document.getElementById("result-label").innerHTML = res.label;
+				if(res.method==1){
+					console.log("Kompressionsverfahren")
+					$("#score-bar").css("visibility", "hidden")
+					showCompressionResults(res.label, res.score, res.certainty)
+				}else if(res.method ==2){
+					console.log("Fine-Tuned LLM");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Fine-tuned GBERT")
+				}else if(res.method ==3){
+					console.log("Zero shot detection");
+					$("#confidence-value").css("visibility", "hidden")
+					showZeroShotResults(res.label, res.score, res.tokens, "bert-base-german-cased")
+				}
+				else{
+					console.log("Ensemble");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Ensemble")
+				}	
+				document.getElementById("submit").disabled = false;
+				clearTimeout(timeout);
+				return false;
+			}else if (get.status == 'RUNNING'){
+				console.log('The job is running in the background');
+				$('#loading-spinner').css("visibility", "visible")
+				$('#loading-label').html(get.message)
+				let submitButton = document.getElementById("submit")
+				submitButton.disabled = true;
+				console.log(submitButton.disabled)
+			}
+			timeout = setTimeout(getStatus, 3000);
+			}
+
+			function showCompressionResults(label, score, certainty){
+				console.log('Inside show compressionresults')
+				$("#confidence-value").css("visibility", "visible")
+				$("#confidence-value").html("Konfidenzniveau: " + score)
+				if(label == "Mensch" || label == "Real"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + score + '</b> als <b>menschlich</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + certainty + '</b> zugenommen. Dies deutet auf einen <b>menschlichen</b> Text hin. Je höher die Abweichung und das Konfidenzniveau, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
+				}else {
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + score + '</b> als <b>KI-generiert</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + certainty + '</b> abgenommen. Dies deutet auf einen <b>KI-generierten</b> Text hin. Je höher die Abweichung, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
+				}
+			}
+
+			function showZeroShotResults(label, score, tokens, model){
+				$("#score-bar").css("visibility", "visible")
+				if(label == "Mensch" || label == "Human"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#certainty-bar-human").css("width", score + "%")
+					$("#certainty-bar-human").html(score + "%")
+					$("#certainty-bar-ai").css("width", (100-score) + "%")
+					$("#certainty-bar-ai").html((100-score) + "%")
+				}else{
+					$("#result-info").css("visibility", "visible")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#certainty-bar-ai").css("width", score + "%")
+					$("#certainty-bar-ai").html(score + "%")
+					$("#certainty-bar-human").css("width", (100-score) + "%")
+					$("#certainty-bar-human").html((100-score) + "%")
+				}
+			}
+
+			function showResults(label, score, model){
+				$("#score-bar").css("visibility", "visible")
+				if(label == "HUMAN" || label == "Real" || label == "Mensch"){
+					$("#result-info").css("visibility", "visible")
+					$("#result-label").html("Mensch")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#certainty-bar-human").css("width", score + "%")
+					$("#certainty-bar-human").html(score.toFixed(2) + "%")
+					$("#certainty-bar-ai").css("width", (100-score) + "%")
+					$("#certainty-bar-ai").html((100-score).toFixed(2) + "%")
+				}else{
+					$("#result-info").css("visibility", "visible")
+					$("#result-label").html("KI")
+					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#certainty-bar-ai").css("width", score + "%")
+					$("#certainty-bar-ai").html(score.toFixed(2) + "%")
+					$("#certainty-bar-human").css("width", (100-score) + "%")
+					$("#certainty-bar-human").html((100-score).toFixed(2) + "%")
+				}
+			}
+
+			getStatus();
+		</script>
+	</body>
+</html>
