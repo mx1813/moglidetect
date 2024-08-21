@@ -68,20 +68,16 @@ def ensembleDetection(inputText):
     # compression detection
     if compressionResult["label"] == 'KI':
         weightedVotes.append(-1 *0.3)
-        ssum -= score
     else:
         weightedVotes.append(0.3)
-        ssum += score
     llmResult = llm_pipeline(inputText)
     score = llmResult["score"]
     scores.append(score)
     # fine tuned llm detection
     if llmResult["label"] == 'AI':
         weightedVotes.append(-1*0.6)
-        ssum -= score 
     else:
         weightedVotes.append(0.6)
-        ssum += score
     zeroShotResult = json.loads(zeroShotDetection(inputText))
     print(zeroShotResult)
     score = zeroShotResult["score"] / 100
@@ -89,18 +85,17 @@ def ensembleDetection(inputText):
     # fine tuned llm detection
     if zeroShotResult["label"] == 'KI':
         weightedVotes.append(-1*0.1)
-        ssum -= score 
     else:
         weightedVotes.append(0.1)
-        ssum += score
     print(scores)
     print(weightedVotes)
-    print(ssum)
     avg = sum(weightedVotes)/len(weightedVotes)
     print(avg)
     # normalize ssum
-    certainty = (avg + np.max(scores)) / 2
+    certainty = (abs(sum(weightedVotes)) + np.max(scores)) / 2
     print(certainty)
+    if abs(certainty)<=0.5:
+        certainty=0.5241
     if avg < 0:
         responseList = {'label': 'KI', 'score':round(abs(certainty)*100, 2)}
     else:
