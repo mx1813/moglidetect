@@ -148,6 +148,10 @@
 					console.log("Zero shot detection");
 					$("#confidence-value").css("visibility", "hidden")
 					showZeroShotResults(res.label, res.score, res.tokens, "bert-base-german-cased")
+				}else if(res.method ==5){
+					console.log("Fine-Tuned LLM");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Fine-tuned DBMZ-BERT")
 				}
 				else{
 					console.log("Ensemble");
