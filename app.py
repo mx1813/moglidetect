@@ -1,11 +1,10 @@
 import os
 import json
-from typing import TypeAlias
 import numpy as np
 import random
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify
 from flask_wtf import FlaskForm
-from flask_executor import Executor, futures
+from flask_executor import Executor
 from wtforms import SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, InputRequired
 from comprendetect import comprendetect
