@@ -189,14 +189,14 @@
 				$("#score-bar").css("visibility", "visible")
 				if(label == "Mensch" || label == "Human"){
 					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#result-info-body").html("Der Text ist zu <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score + "%")
 					$("#certainty-bar-ai").css("width", (100-score) + "%")
 					$("#certainty-bar-ai").html((100-score) + "%")
 				}else{
 					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#result-info-body").html("Der Text ist zu <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score + "%")
 					$("#certainty-bar-human").css("width", (100-score) + "%")
@@ -209,7 +209,7 @@
 				if(label == "HUMAN" || label == "Real" || label == "Mensch"){
 					$("#result-info").css("visibility", "visible")
 					$("#result-label").html("Mensch")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#result-info-body").html("Der Text wurde zu <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score.toFixed(2) + "%")
 					$("#certainty-bar-ai").css("width", (100-score) + "%")
@@ -217,7 +217,7 @@
 				}else{
 					$("#result-info").css("visibility", "visible")
 					$("#result-label").html("KI")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#result-info-body").html("Der Text wurde zu <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score.toFixed(2) + "%")
 					$("#certainty-bar-human").css("width", (100-score) + "%")

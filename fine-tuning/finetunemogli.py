@@ -8,7 +8,7 @@ from datasets import DatasetDict
 
 """Im ersten Schritt wird das Datenset, welches die Trainingsdaten enthält, geladen. Der Datenatz umfasst Texte und ordnet diesem einem Label zu (0=menschlich; 1=KI). In diesem Fall liegen die Daten in einer csv-Datei vor. Die Datei wird mithilfe von pandas eingelesen."""
 
-data = pd.read_csv('dsFinale.csv', on_bad_lines='skip', sep=";", encoding="utf-8")
+data = pd.read_csv('dsFull.csv', on_bad_lines='skip', sep=";", encoding="utf-8")
 print(data.head())
 
 """Der Datensatz werden in 3 Datensätze aufgeteilt: Train, Test und Validate. Anschließend werden die datensätze für das Training vorbereitet."""

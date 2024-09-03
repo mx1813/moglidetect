@@ -7,7 +7,7 @@ from comprendetect import comprendetect
 from app import compressionDetection, ensembleDetection
 
 
-data = pd.read_csv('evaluationDS.csv', on_bad_lines='skip', sep=";", encoding="utf-8")
+data = pd.read_csv('dsValidate.csv', on_bad_lines='skip', sep=";", encoding="utf-8")
 print(len(data))
 vds = Dataset.from_pandas(data)
 evaDs = vds.to_iterable_dataset()
