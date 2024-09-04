@@ -6,5 +6,6 @@ __pycache__/
 
 comprendetect/__pycache__/
 
-fine-tuning/model/mogli_sec
+fine-tuning/model/mogli_dbmz
 fine-tuning/model.zip
+fine-tuning/model/mogli_gbert

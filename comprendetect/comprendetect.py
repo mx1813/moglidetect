@@ -1,12 +1,11 @@
-import sys, argparse, re, lzma, itertools, os, statistics
-import json
+import re, lzma, itertools, statistics
 from zlib import compressobj, Z_FINISH
 from brotli import compress as brotli_compress, MODE_TEXT
 from numpy import array_split
 from abc import ABC, abstractmethod
 from math import ceil
 from enum import Enum
-from typing import List, Optional, Tuple, TypeAlias
+from typing import List, Optional, TypeAlias
 from multiprocessing import Pool, cpu_count
 from importlib.resources import files
 
@@ -222,15 +221,6 @@ class EnsembledZippy:
         else:
             return f'{{"label": "Mensch", "certainty": {abs(sa)}, "score":{abs(sper)}}}'
 
-    def run_on_file(self, filename : str) -> Optional[Score]:
-        '''Given a filename (and an optional number of decimal places to round to) returns the score for the contents of that file'''
-        with open(filename, 'r', encoding='utf-8') as fp:
-            txt = fp.read()
-        scores = []
-        for c in self.component_classifiers:
-            scores.append(c.score_text(txt))
-        return self._combine_scores(scores)
-
     def _score_chunk(self, c : str, prelude_file : Optional[str] = None, prelude_ratio : Optional[float] = None) -> Score:
         scores = []
         for c in self.component_classifiers:
@@ -238,16 +228,6 @@ class EnsembledZippy:
             print(c.score_text(c))
             scores.append(c.score_text(c))
         return self._combine_scores(scores)
-
-    def run_on_file_chunked(self, filename : str, chunk_size : int = 1500, prelude_ratio : Optional[float] = None) -> Optional[Score]:
-        '''
-        Given a filename (and an optional chunk size and number of decimal places to round to) returns the score for the contents of that file.
-        This function chunks the file into at most chunk_size parts to score separately, then returns an average. This prevents a very large input
-        being skewed because its compression ratio starts to overwhelm the prelude file.
-        '''
-        with open(filename, 'r', encoding='utf-8') as fp:
-            contents = fp.read()
-        return self.run_on_text_chunked(contents, chunk_size)
 
     def run_on_text_chunked(self, s : str, chunk_size : int = 1500, prelude_file : Optional[str] = None, prelude_ratio : Optional[float] = None) -> Optional[Score]:
         '''
@@ -290,29 +270,12 @@ class Zippy:
             else:
                 self.detector = ZlibLlmDetector(prelude_str=self.PRELUDE_STR)
 
-    def run_on_file(self, filename : str) -> Optional[Score]:
-        '''Given a filename (and an optional number of decimal places to round to) returns the score for the contents of that file'''
-        with open(filename, 'r', encoding='utf-8') as fp:
-            txt = fp.read()
-            #print('Calculating score for input of length ' + str(len(txt)))
-        return self.detector.score_text(txt)
-
     def _score_chunk(self, c : str, prelude_file : Optional[str] = None, prelude_ratio : Optional[float] = None) -> Score:
         if prelude_file is None and prelude_ratio != None:
             self.detector.prelude_str = PRELUDE_STR
             self.detector.prelude_ratio = prelude_ratio
 
         return self.detector.score_text(c)
-
-    def run_on_file_chunked(self, filename : str, chunk_size : int = 1500, prelude_ratio : Optional[float] = None) -> Optional[Score]:
-        '''
-        Given a filename (and an optional chunk size and number of decimal places to round to) returns the score for the contents of that file.
-        This function chunks the file into at most chunk_size parts to score separately, then returns an average. This prevents a very large input
-        being skewed because its compression ratio starts to overwhelm the prelude file.
-        '''
-        with open(filename, 'r', encoding='utf-8') as fp:
-            contents = fp.read()
-        return self.run_on_text_chunked(contents, chunk_size, prelude_ratio=prelude_ratio)
 
     def run_on_text_chunked(self, s : str, chunk_size : int = 1500, prelude_file : Optional[str] = None, prelude_ratio : Optional[float] = None) -> Optional[Score]:
         '''

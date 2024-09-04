@@ -62,7 +62,7 @@
 			<div class="p-5 mb-4 bg-light rounded-3">
 				<div class="container-fluid py-5 text-center">
 					<h1 class="display-5 fw-bold">MogliDetect</h1>
-                    <p>Dies ist ein wunderschöner Platzhaltertext</p>
+                    <p>Geben Sie einen Text, der von diesem Tool überprüft werden soll und klicken Sie dann den grünen "Check Text!"-Button. Nach einer kurzen Analyse liefert <b>MogliDetect</b> eine Einschätzung, ob der eingegebene Text von einem Mensch oder einer KI geschrieben wurde. Bitte beachten Sie, dass der Detektor hauptsächlich auf deutschen Texten aus wissenschaftlichen Arbeiten spezialisiert ist.</p>
 					<form action="" method="post" id="input-form" novalidate>
                         {{ form.hidden_tag() }}
                         <div class="form-group row mb-3 align-items-center justify-content-center">
@@ -148,6 +148,10 @@
 					console.log("Zero shot detection");
 					$("#confidence-value").css("visibility", "hidden")
 					showZeroShotResults(res.label, res.score, res.tokens, "bert-base-german-cased")
+				}else if(res.method ==5){
+					console.log("Fine-Tuned LLM");
+					$("#confidence-value").css("visibility", "hidden")
+					showResults(res.label, res.score, "Fine-tuned DBMZ-BERT")
 				}
 				else{
 					console.log("Ensemble");
@@ -177,7 +181,7 @@
 					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + score + '</b> als <b>menschlich</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + certainty + '</b> zugenommen. Dies deutet auf einen <b>menschlichen</b> Text hin. Je höher die Abweichung und das Konfidenzniveau, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
 				}else {
 					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + score + '</b> als <b>KI-generiert</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + certainty + '</b> abgenommen. Dies deutet auf einen <b>KI-generierten</b> Text hin. Je höher die Abweichung, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
+					$("#result-info-body").html('Das Kompressionsverfahren stuft den Text mit einem Konfidenzniveau von <b>' + score + '</b> als <b>KI-generiert</b> ein.<br> Das Komprimierungsverhältnis von komprimiertem und unkomprimiertem Text hat mit dem eingegebenen Text um <b>' + certainty + '</b> abgenommen. Dies deutet auf einen <b>KI-generierten</b> Text hin. Je höher die Abweichung und das Konfidenzniveau, desto höher ist auch die Verlässlichkeit des Ergebnisses. <br>Das Kompressionsverfahren basiert auf dem Tool <a href="https://blog.thinkst.com/2023/06/meet-zippy-a-fast-ai-llm-text-detector.html">ZipPy</a>, welches unterschiedliche Komprimierungsalgorithmen einsetzt und die einzelnen Ergebnisse zusammenführt.')
 				}
 			}
 
@@ -185,14 +189,14 @@
 				$("#score-bar").css("visibility", "visible")
 				if(label == "Mensch" || label == "Human"){
 					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#result-info-body").html("Der Text ist zu <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score + "%")
 					$("#certainty-bar-ai").css("width", (100-score) + "%")
 					$("#certainty-bar-ai").html((100-score) + "%")
 				}else{
 					$("#result-info").css("visibility", "visible")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
+					$("#result-info-body").html("Der Text ist zu <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein Zero-shot Ansatz basierend auf <b>" + tokens + "</b> unterschiedlichen, maskierten Tokens des Eingabetextes verwendet. Mithilfe von dem LLM <b>" + model + "</b> wurden anschließend die maskierten Tokens vorhergesagt und mit den tatsächlichen verglichen. Eine hohe Anzahl an korrekt vorhergestagten Tokens deutet auf einen computergenerierten Text mit entsprechend niedriger Perplexity hin. Ein von Menschen geschriebener Text zeichnet sich dabei durch eine höhere Perplexity und wenig korrekt vorhergesagten Tokens aus.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score + "%")
 					$("#certainty-bar-human").css("width", (100-score) + "%")
@@ -205,7 +209,7 @@
 				if(label == "HUMAN" || label == "Real" || label == "Mensch"){
 					$("#result-info").css("visibility", "visible")
 					$("#result-label").html("Mensch")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#result-info-body").html("Der Text wurde zu <b>" + score + "%</b> von einem Mensch geschrieben. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-human").css("width", score + "%")
 					$("#certainty-bar-human").html(score.toFixed(2) + "%")
 					$("#certainty-bar-ai").css("width", (100-score) + "%")
@@ -213,7 +217,7 @@
 				}else{
 					$("#result-info").css("visibility", "visible")
 					$("#result-label").html("KI")
-					$("#result-info-body").html("Der Text ist mit einer Wahrscheinlichtkeit von <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
+					$("#result-info-body").html("Der Text wurde zu <b>" + score + "%</b> von einer KI generiert. Für die Bewertung wurde ein " + model + " Modell eingesetzt.")
 					$("#certainty-bar-ai").css("width", score + "%")
 					$("#certainty-bar-ai").html(score.toFixed(2) + "%")
 					$("#certainty-bar-human").css("width", (100-score) + "%")

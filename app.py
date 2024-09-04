@@ -1,15 +1,14 @@
 import os
 import json
-from typing import TypeAlias
 import numpy as np
 import random
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify
 from flask_wtf import FlaskForm
-from flask_executor import Executor, futures
+from flask_executor import Executor
 from wtforms import SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, InputRequired
 from comprendetect import comprendetect
-from llmdetection import llm_pipeline
+from llmdetection import llm_pipeline, llm_pipeline_dbmz
 from zeroShotDetection import AIOrHumanScorer
 
 
@@ -36,6 +35,15 @@ def llmDetection(inputText):
     print(jsonRes)
     score = round(jsonRes["score"] * 100, 2)
     responseList = {'label':jsonRes["label"], 'score':score, 'method':2}
+    responseJson = json.dumps(responseList)
+    return responseJson
+
+def llmDetectionDbmz(inputText):
+    print('start llm pipeline')
+    jsonRes = llm_pipeline_dbmz(inputText)
+    print(jsonRes)
+    score = round(jsonRes["score"] * 100, 2)
+    responseList = {'label':jsonRes["label"], 'score':score, 'method':5}
     responseJson = json.dumps(responseList)
     return responseJson
 
@@ -67,21 +75,25 @@ def ensembleDetection(inputText):
     scores.append(score)
     # compression detection
     if compressionResult["label"] == 'KI':
-        weightedVotes.append(-1 *0.3)
-        ssum -= score
+        weightedVotes.append(-1 *0.2)
     else:
-        weightedVotes.append(0.3)
-        ssum += score
+        weightedVotes.append(0.2)
+    # fine tuned gbert detection
     llmResult = llm_pipeline(inputText)
     score = llmResult["score"]
     scores.append(score)
-    # fine tuned llm detection
     if llmResult["label"] == 'AI':
-        weightedVotes.append(-1*0.6)
-        ssum -= score 
+        weightedVotes.append(-1*0.3)
     else:
-        weightedVotes.append(0.6)
-        ssum += score
+        weightedVotes.append(0.3)
+    #fine-tuned dbmz-bert
+    llmResult = llm_pipeline_dbmz(inputText)
+    score = llmResult["score"]
+    scores.append(score)
+    if llmResult["label"] == 'AI':
+        weightedVotes.append(-1*0.4)
+    else:
+        weightedVotes.append(0.4)
     zeroShotResult = json.loads(zeroShotDetection(inputText))
     print(zeroShotResult)
     score = zeroShotResult["score"] / 100
@@ -89,18 +101,17 @@ def ensembleDetection(inputText):
     # fine tuned llm detection
     if zeroShotResult["label"] == 'KI':
         weightedVotes.append(-1*0.1)
-        ssum -= score 
     else:
         weightedVotes.append(0.1)
-        ssum += score
     print(scores)
     print(weightedVotes)
-    print(ssum)
     avg = sum(weightedVotes)/len(weightedVotes)
     print(avg)
     # normalize ssum
-    certainty = (avg + np.max(scores)) / 2
+    certainty = (abs(sum(weightedVotes)) + np.max(scores)) / 2
     print(certainty)
+    if abs(certainty)<=0.5:
+        certainty=0.5241
     if avg < 0:
         responseList = {'label': 'KI', 'score':round(abs(certainty)*100, 2)}
     else:
@@ -109,7 +120,7 @@ def ensembleDetection(inputText):
     return json.dumps(responseList)
       
 class InputForm(FlaskForm):
-    detectmethod = SelectField('Methode', choices=[('1', 'Kompression'), ('2', 'Fine-Tuned GBERT'), ('3', 'Zero-shot Detection'), ('4', 'Ensemble')], validators=[DataRequired()])
+    detectmethod = SelectField('Methode', choices=[('1', 'Kompression'), ('2', 'Fine-Tuned GBERT'), ('5', 'Fine-Tuned DBMZ-BERT'), ('3', 'Zero-shot Detection'), ('4', 'Ensemble')], validators=[DataRequired()])
     inputText = TextAreaField('EingabeText', validators=[InputRequired(message="Du musst einen Text eingeben!"), Length(min=1, max=2048)])
     submit = SubmitField('Check Text!')
 
@@ -127,12 +138,16 @@ def index():
             executor.submit_stored('detection', compressionDetection, input)
             print('Started executor')
         elif detectMethod == '2':
-            print('Detection with fine-tuned LLM')
+            print('Detection with fine-tuned GBERT')
             executor.submit_stored('detection', llmDetection, input)
             print('Started executor')
         elif detectMethod == '3':
             print('Zero-shot detection with google-bert/bert-base-german-cased')
             executor.submit_stored('detection', zeroShotDetection, input)
+            print('Started executor')
+        elif detectMethod == '5':
+            print('Detection with fine-tuned DBMZ-BERT')
+            executor.submit_stored('detection', llmDetectionDbmz, input)
             print('Started executor')
         else:
             print('Start ensemble detection')
