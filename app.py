@@ -158,15 +158,15 @@ def index():
 
 @app.route('/get-result')
 def get_result():
-    verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking']
-    adjective = ['master', 'radiant', 'silent', 'harmonic', 'fast']
-    noun = ['solar array', 'particle reshaper', 'cosmic ray', 'orbiter', 'bit']
+    verb = ['entschlüsseln', 'durchleuchten', 'analysieren', 'durchforsten', 'bewerten', 'entwirren', 'untersuchen']
+    adjective = ['komplexe', 'verwirrte', 'geheime', 'intrigante', 'kreative', 'versteckte', 'klare', 'ungewöhnliche', 'interessante', 'spannende']
+    noun = ['Inhalte', 'Daten', 'Informationen', 'Sätze', 'Texte', 'Bits und Bytes', 'Code', 'Wörter', 'Algorithmen']
     message = ''
     if not executor.futures.done('detection'):
         state = executor.futures._state('detection')
-        message = '{0} {1} {2}...'.format(random.choice(verb),
-                                              random.choice(adjective),
-                                              random.choice(noun))
+        message = '{0} {1} {2}...'.format(random.choice(adjective),
+                                              random.choice(noun),
+                                              random.choice(verb))
         return jsonify({'status': state, 'message': message})
     future = executor.futures.pop('detection')
     return jsonify({'status': 'done', 'result': future.result()})

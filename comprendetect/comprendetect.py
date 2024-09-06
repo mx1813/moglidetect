@@ -30,7 +30,7 @@ def clean_text(s : str) -> str:
     return s
 
 # The prelude file is a text file containing only AI-generated text, it is used to 'seed' the LZMA dictionary
-PRELUDE_FILE : str = 'ai-generated.txt'
+PRELUDE_FILE : str = 'ai-generatedShort.txt'
 PRELUDE_STR = clean_text(files('comprendetect').joinpath(PRELUDE_FILE).read_text(encoding="utf-8"))
 #print(PRELUDE_STR)
 
