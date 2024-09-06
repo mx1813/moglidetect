@@ -32,8 +32,22 @@ def llm_pipeline(inputText):
 ---
 
 ## Starten der Anwendung
+Voraussetzung für das Ausführen der Anwendung: [Python](https://www.python.org/downloads/) ist installiert und eingrichtet.
 ### Installieren der Requirements
-Vor dem ersten Starten der Anwendung müssen die für die Anwendung benötigten Requirements heruntergeladen werde. Hierzu empfiehlt es sich, zuerst eine [virtuelle Umgebung](https://docs.python.org/3/library/venv.html) in Python zu erstellen, um mögliche Konflikte zu vermeiden. Die Requirements können anschließend mit dem folgenden Befehl heruntergeladen werden:
+Vor dem ersten Starten der Anwendung müssen die für die Anwendung benötigten Requirements heruntergeladen werde. Hierzu empfiehlt es sich, zuerst eine virtuelle Umgebung in Python zu erstellen, um mögliche Konflikte zu vermeiden. 
+#### Virtuelle Umgebung erstellen und aktivieren
+Einen detaillierten Guide zum Erstellen einer virtuellen Umgebung findet sich [hier](https://docs.python.org/3/library/venv.html). 
+Im folgenden wird ein Beispiel zur Erstellung auf Windows gegeben:
+```bash
+python -m venv venv
+```
+Nachdem auf diese Weise eine virtuelle Umgebung erstellt wurde, muss diese anschließend noch aktiviert werden. Hierzu in dem obersten Verzeichnis des Projekts, in dem auch die virtuelle Umgebug befinet den folgenden Befehl ausführen:
+```bash
+venv\Scripts\activate
+```
+
+#### Installieren der Requirements
+Die Requirements können anschließend mit dem folgenden Befehl heruntergeladen werden:
 ```bash
 pip install -r requirements.txt
 ```

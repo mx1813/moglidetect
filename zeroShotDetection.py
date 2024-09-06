@@ -3,7 +3,6 @@ import random
 import torch
 from transformers import pipeline, AutoModelForMaskedLM, AutoTokenizer
 from nltk.tokenize import word_tokenize
-import numpy as np
 
 # https://rotational.io/blog/building-an-ai-text-detector/
 
@@ -17,7 +16,7 @@ class AIOrHumanScorer():
         self.tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
         self.mask_fill = pipeline("fill-mask", model=mask_filler)
         self.labels = ["human", "auto"]
-        nltk.download("punkt")
+        nltk.download("punkt_tab")
         nltk.download("stopwords")
         self.stop_words = set(nltk.corpus.stopwords.words("german"))
 
